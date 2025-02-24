@@ -21,8 +21,8 @@ func NewWorld(opts ...WorldOptions) *World {
 	}
 
 	return &World{
-		onCreateCallbacks: make([]func(w *World, e Entity), option.OnCreateCallbacksCapacity),
-		onRemoveCallbacks: make([]func(w *World, e Entity), option.OnRemoveCallbacksCapacity),
+		onCreateCallbacks: make([]func(w *World, e Entity), 0, option.OnCreateCallbacksCapacity),
+		onRemoveCallbacks: make([]func(w *World, e Entity), 0, option.OnRemoveCallbacksCapacity),
 	}
 }
 
