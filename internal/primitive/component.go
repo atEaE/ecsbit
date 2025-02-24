@@ -1,8 +1,8 @@
-package component
+package primitive
 
 import "reflect"
 
-// ComponentTypeID : componentのIDを表す型
+// ComponentTypeID : componentを一意に表す型
 type ComponentTypeID uint32
 
 // ComponentType : componentの型情報を提供するインターフェース
