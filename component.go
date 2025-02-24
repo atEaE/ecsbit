@@ -4,15 +4,15 @@ import (
 	"reflect"
 	"sync/atomic"
 
-	"github.com/atEaE/ecsbit/internal/component"
+	"github.com/atEaE/ecsbit/internal/primitive"
 )
 
-// componentIDCounter : ComponentID生成のためのCounter
+// componentIDCounter : ComponentID生成のためのカウンタ
 var componentIDCounter uint32 = 0
 
 // nextComponentID : ComponentIDを生成する
-func nextComponentID() component.ComponentTypeID {
-	return component.ComponentTypeID(atomic.AddUint32(&componentIDCounter, 1) - 1)
+func nextComponentID() primitive.ComponentTypeID {
+	return primitive.ComponentTypeID(atomic.AddUint32(&componentIDCounter, 1) - 1)
 }
 
 // NewComponent : Generics指定の型をComponentとして生成する
@@ -28,13 +28,13 @@ func NewComponent[T any]() *Component[T] {
 
 // Component : Componentを表す構造体
 type Component[T any] struct {
-	id   component.ComponentTypeID
+	id   primitive.ComponentTypeID
 	name string
 	typ  reflect.Type
 }
 
 // ID : componentTypeを一意に識別するIDを取得する
-func (c *Component[T]) ID() component.ComponentTypeID {
+func (c *Component[T]) ID() primitive.ComponentTypeID {
 	return c.id
 }
 
@@ -52,4 +52,8 @@ func (c *Component[T]) OriginType() reflect.Type {
 // 自分で設定しない場合は、基本的にベースになっているものの型名が名前になる
 func (c *Component[T]) SetName(n string) {
 	c.name = n
+}
+
+type ComponentPool[T any] struct {
+	data []T
 }
