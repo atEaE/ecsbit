@@ -1,5 +1,7 @@
 package ecsbit
 
+import "github.com/atEaE/ecsbit/internal/component"
+
 //  defaultOptions : Worldのデフォルトオプション
 var defaultOptions = WorldOptions{
 	OnCreateCallbacksCapacity: 256,
@@ -48,6 +50,10 @@ func (w *World) PushOnRemoveCallback(f func(w *World, e Entity)) {
 
 // RegisterArchetype : Archetypeを登録します
 // Archetypeは、特定のComponentの組み合わせを持つパターンのことです
-func (w *World) RegisterArchetype(components ...ComponentType) {
+func (w *World) RegisterArchetype(components ...component.ComponentType) {
+	panic("not implemented")
+}
+
+func (w *World) Create(components ...component.ComponentType) Entity {
 	panic("not implemented")
 }
