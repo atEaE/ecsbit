@@ -2,38 +2,25 @@ package ecsbit
 
 import (
 	"fmt"
+
+	"github.com/atEaE/ecsbit/config"
 )
 
 var (
 	ErrRemoveDeadEntity = fmt.Errorf("can't remove a dead entity")
 )
 
-// defaultOptions : Worldのデフォルトオプション
-var defaultOptions = WorldOptions{
-	EntityPoolCapacity:        1024,
-	OnCreateCallbacksCapacity: 256,
-	OnRemoveCallbacksCapacity: 256,
-}
-
-// WorldOptions : Worldのオプションを提供する構造体
-type WorldOptions struct {
-	EntityPoolCapacity        int // Entity Poolのキャパシティ
-	OnCreateCallbacksCapacity int // Entity生成時に呼び出すコールバック群を保持するsliceのキャパシティ
-	OnRemoveCallbacksCapacity int // Entity削除時に呼び出すコールバック群を保持するsliceのキャパシティ
-}
-
 // NewWorld : Worldを生成します
-func NewWorld(opts ...WorldOptions) *World {
-	option := defaultOptions
-	if len(opts) > 0 {
-		// optional args にしたかっただけなので、先頭要素以外は不要
-		option = opts[0]
+func NewWorld(opts ...config.WorldConfigOption) *World {
+	conf := config.Default()
+	for _, opt := range opts {
+		opt(&conf)
 	}
 
 	return &World{
-		entityPool:        newEntityPool(uint32(option.EntityPoolCapacity)),
-		onCreateCallbacks: make([]func(w *World, e Entity), 0, option.OnCreateCallbacksCapacity),
-		onRemoveCallbacks: make([]func(w *World, e Entity), 0, option.OnRemoveCallbacksCapacity),
+		entityPool:        newEntityPool(uint32(conf.EntityPoolCapacity)),
+		onCreateCallbacks: make([]func(w *World, e Entity), 0, conf.OnCreateCallbacksCapacity),
+		onRemoveCallbacks: make([]func(w *World, e Entity), 0, conf.OnRemoveCallbacksCapacity),
 	}
 }
 

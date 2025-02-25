@@ -1,35 +1,41 @@
 package ecsbit
 
-import "testing"
+import (
+	"testing"
 
-func TestWorldOptions(t *testing.T) {
+	"github.com/atEaE/ecsbit/config"
+)
+
+func TestWorld_NewWorldWithOptions(t *testing.T) {
 	t.Run("default", func(t *testing.T) {
 		// arrange
 		w := NewWorld()
 
 		// assert
-		if got := cap(w.onCreateCallbacks); got != defaultOptions.OnCreateCallbacksCapacity {
-			t.Errorf("unexpected result: got %v, want %v", got, defaultOptions.OnCreateCallbacksCapacity)
+		if got := cap(w.onCreateCallbacks); got != int(config.Default().OnCreateCallbacksCapacity) {
+			t.Errorf("unexpected result: got %v, want %v", got, int(config.Default().OnCreateCallbacksCapacity))
 		}
-		if got := cap(w.onRemoveCallbacks); got != defaultOptions.OnRemoveCallbacksCapacity {
-			t.Errorf("unexpected result: got %v, want %v", got, defaultOptions.OnRemoveCallbacksCapacity)
+		if got := cap(w.onRemoveCallbacks); got != int(config.Default().OnRemoveCallbacksCapacity) {
+			t.Errorf("unexpected result: got %v, want %v", got, int(config.Default().OnRemoveCallbacksCapacity))
 		}
 	})
 
 	t.Run("custom", func(t *testing.T) {
 		// arrange
-		opts := WorldOptions{
-			OnCreateCallbacksCapacity: 512,
-			OnRemoveCallbacksCapacity: 128,
-		}
-		w := NewWorld(opts)
+		expectedOnCreateCap := uint32(512)
+		expectedOnRemoveCap := uint32(128)
+
+		w := NewWorld(
+			config.WithOnCreateCallbacksCapacity(expectedOnCreateCap),
+			config.WithOnRemoveCallbacksCapacity(expectedOnRemoveCap),
+		)
 
 		// assert
-		if got := cap(w.onCreateCallbacks); got != opts.OnCreateCallbacksCapacity {
-			t.Errorf("unexpected result: got %v, want %v", got, opts.OnCreateCallbacksCapacity)
+		if got := cap(w.onCreateCallbacks); got != int(expectedOnCreateCap) {
+			t.Errorf("unexpected result: got %v, want %v", got, int(expectedOnCreateCap))
 		}
-		if got := cap(w.onRemoveCallbacks); got != opts.OnRemoveCallbacksCapacity {
-			t.Errorf("unexpected result: got %v, want %v", got, opts.OnRemoveCallbacksCapacity)
+		if got := cap(w.onRemoveCallbacks); got != int(expectedOnRemoveCap) {
+			t.Errorf("unexpected result: got %v, want %v", got, int(expectedOnRemoveCap))
 		}
 	})
 }
