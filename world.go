@@ -18,7 +18,8 @@ func NewWorld(opts ...config.WorldConfigOption) *World {
 	}
 
 	return &World{
-		entityPool:        newEntityPool(uint32(conf.EntityPoolCapacity)),
+		componentStorage:  newComponentStorage(conf.RegisterdComponentMaxSize),
+		entityPool:        newEntityPool(conf.EntityPoolCapacity),
 		onCreateCallbacks: make([]func(w *World, e Entity), 0, conf.OnCreateCallbacksCapacity),
 		onRemoveCallbacks: make([]func(w *World, e Entity), 0, conf.OnRemoveCallbacksCapacity),
 	}
@@ -26,7 +27,8 @@ func NewWorld(opts ...config.WorldConfigOption) *World {
 
 // World : ECSの仕組みを提供する構造体
 type World struct {
-	entityPool entityPool // Entityを管理するPool（生成とリサイクルを管理する）
+	componentStorage componentStorage // Componentを管理するStorage
+	entityPool       entityPool       // Entityを管理するPool（生成とリサイクルを管理する）
 
 	onCreateCallbacks []func(w *World, e Entity) // Entity生成時に呼び出すコールバック
 	onRemoveCallbacks []func(w *World, e Entity) // Entity削除時に呼び出すコールバック
@@ -47,10 +49,14 @@ func (w *World) PushOnRemoveCallback(f func(w *World, e Entity)) {
 }
 
 // NewEntity : 新しいEntityを生成します
-func (w *World) NewEntity(components ...component) Entity {
+func (w *World) NewEntity(components ...ComponentID) Entity {
 	if len(components) == 0 {
 		return w.createEntity(nil)
 	}
+	if w.duplicateComponents(components) {
+		panic("duplicate components")
+	}
+
 	panic("not implemented")
 }
 
@@ -77,7 +83,7 @@ func (w *World) RemoveEntity(e Entity) {
 }
 
 // duplicateComponents
-func (w *World) duplicateComponents(c []component) bool {
+func (w *World) duplicateComponents(c []ComponentID) bool {
 	for i := 0; i < len(c); i++ {
 		for j := i + 1; j < len(c); j++ {
 			if c[i] == c[j] {
@@ -90,7 +96,8 @@ func (w *World) duplicateComponents(c []component) bool {
 
 // RegisterComponent : Componentを登録します
 func (w *World) RegisterComponent(c component) ComponentID {
-	panic("not implemented")
+	id := w.componentStorage.ComponentID(c)
+	return id
 }
 
 func (w *World) Stats() string {
