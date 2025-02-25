@@ -1,7 +1,11 @@
 package ecsbit
 
 import (
-	"github.com/atEaE/ecsbit/internal/primitive"
+	"fmt"
+)
+
+var (
+	ErrRemoveDeadEntity = fmt.Errorf("can't remove a dead entity")
 )
 
 // defaultOptions : Worldのデフォルトオプション
@@ -27,7 +31,7 @@ func NewWorld(opts ...WorldOptions) *World {
 	}
 
 	return &World{
-		entities:          newEntityPool(uint32(option.EntityPoolCapacity)),
+		entityPool:        newEntityPool(uint32(option.EntityPoolCapacity)),
 		onCreateCallbacks: make([]func(w *World, e Entity), 0, option.OnCreateCallbacksCapacity),
 		onRemoveCallbacks: make([]func(w *World, e Entity), 0, option.OnRemoveCallbacksCapacity),
 	}
@@ -35,7 +39,7 @@ func NewWorld(opts ...WorldOptions) *World {
 
 // World : ECSの仕組みを提供する構造体
 type World struct {
-	entities entityPool
+	entityPool entityPool // Entityを管理するPool（生成とリサイクルを管理する）
 
 	onCreateCallbacks []func(w *World, e Entity) // Entity生成時に呼び出すコールバック
 	onRemoveCallbacks []func(w *World, e Entity) // Entity削除時に呼び出すコールバック
@@ -56,20 +60,35 @@ func (w *World) PushOnRemoveCallback(f func(w *World, e Entity)) {
 }
 
 // NewEntity : 新しいEntityを生成します
-func (w *World) NewEntity(components []primitive.ComponentType) Entity {
+func (w *World) NewEntity(components []Component) Entity {
 	if len(components) == 0 {
 		return w.createEntity(nil)
 	}
 	panic("not implemented")
 }
 
+// createEntity : Entityを生成します
 func (w *World) createEntity(archetype *Archetype) Entity {
+	entity := w.entityPool.Get()
 
-	panic("not implemented")
+	for i := range w.onCreateCallbacks {
+		w.onCreateCallbacks[i](w, entity)
+	}
+	return entity
+}
+
+// RemoveEntity : Entityを削除します
+func (w *World) RemoveEntity(e Entity) {
+	// 死んでいるEntityをリサイクルすることはできない
+	if !w.entityPool.Alive(e) {
+		panic(ErrRemoveDeadEntity)
+	}
+
+	w.entityPool.Recycle(e)
 }
 
 // duplicateComponents
-func (w *World) duplicateComponents(c []primitive.ComponentType) bool {
+func (w *World) duplicateComponents(c []Component) bool {
 	for i := 0; i < len(c); i++ {
 		for j := i + 1; j < len(c); j++ {
 			if c[i] == c[j] {
