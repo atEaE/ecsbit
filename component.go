@@ -4,17 +4,13 @@ import (
 	"reflect"
 )
 
-// // componentIDCounter : ComponentID生成のためのカウンタ
-// var componentIDCounter uint32 = 0
-
-// // nextComponentID : ComponentIDを生成する
-// func nextComponentID() primitive.ComponentTypeID {
-// 	return primitive.ComponentTypeID(atomic.AddUint32(&componentIDCounter, 1) - 1)
-// }
+// ComponentID : World単位でComponentを一意に表すID
+type ComponentID uint32
 
 // NewComponent : Generics指定の型をComponentとして生成する
 func NewComponent[T any]() component {
-	typ := reflect.TypeOf((*T)(nil))
+	var t T
+	typ := reflect.TypeOf(t)
 	return component{
 		name: typ.Name(),
 		typ:  typ,
@@ -22,6 +18,7 @@ func NewComponent[T any]() component {
 }
 
 // component : componentを表す構造体
+// ユーザーには公開せず、生成経路を制限する
 type component struct {
 	name string
 	typ  reflect.Type
@@ -43,6 +40,43 @@ func (c *component) SetName(n string) {
 	c.name = n
 }
 
-type ComponentPool[T any] struct {
-	data []T
+// newComponentStorage : componentStorageを生成する
+func newComponentStorage(maxSize uint32) componentStorage {
+	maxSizeInt := int(maxSize)
+	return componentStorage{
+		Components: make(map[component]ComponentID, maxSizeInt),
+		Types:      make([]component, maxSize),
+		IDs:        make([]ComponentID, 0, maxSize),
+
+		maxSize: int(maxSize),
+	}
+}
+
+// componentStorage : componentを補完するストレージ
+type componentStorage struct {
+	Components map[component]ComponentID
+	Types      []component
+	IDs        []ComponentID
+
+	maxSize int
+}
+
+// ComponentID : ComponentIDを取得する. storageに存在しない場合は、登録後のIDを返す
+func (s *componentStorage) ComponentID(c component) ComponentID {
+	if id, ok := s.Components[c]; ok {
+		return id
+	}
+	return s.register(c)
+}
+
+// register : componentを登録する
+func (s *componentStorage) register(c component) ComponentID {
+	idInt := len(s.Components)
+	if idInt >= s.maxSize {
+		panic("componentStorage is full")
+	}
+	newID := ComponentID(idInt)
+	s.Components[c], s.Types[newID] = newID, c
+	s.IDs = append(s.IDs, newID)
+	return newID
 }

@@ -72,6 +72,8 @@ func (w *World) RemoveEntity(e Entity) {
 	}
 
 	w.entityPool.Recycle(e)
+
+	panic("not implemented")
 }
 
 // duplicateComponents
@@ -84,6 +86,11 @@ func (w *World) duplicateComponents(c []component) bool {
 		}
 	}
 	return false
+}
+
+// RegisterComponent : Componentを登録します
+func (w *World) RegisterComponent(c component) ComponentID {
+	panic("not implemented")
 }
 
 func (w *World) Stats() string {
