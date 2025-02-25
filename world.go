@@ -47,7 +47,7 @@ func (w *World) PushOnRemoveCallback(f func(w *World, e Entity)) {
 }
 
 // NewEntity : 新しいEntityを生成します
-func (w *World) NewEntity(components []Component) Entity {
+func (w *World) NewEntity(components ...component) Entity {
 	if len(components) == 0 {
 		return w.createEntity(nil)
 	}
@@ -75,7 +75,7 @@ func (w *World) RemoveEntity(e Entity) {
 }
 
 // duplicateComponents
-func (w *World) duplicateComponents(c []Component) bool {
+func (w *World) duplicateComponents(c []component) bool {
 	for i := 0; i < len(c); i++ {
 		for j := i + 1; j < len(c); j++ {
 			if c[i] == c[j] {
@@ -84,4 +84,8 @@ func (w *World) duplicateComponents(c []Component) bool {
 		}
 	}
 	return false
+}
+
+func (w *World) Stats() string {
+	return ""
 }

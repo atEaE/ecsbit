@@ -13,33 +13,33 @@ import (
 // }
 
 // NewComponent : Generics指定の型をComponentとして生成する
-func NewComponent[T any]() Component {
+func NewComponent[T any]() component {
 	typ := reflect.TypeOf((*T)(nil))
-	return Component{
+	return component{
 		name: typ.Name(),
 		typ:  typ,
 	}
 }
 
-// Component : Componentを表す構造体
-type Component struct {
+// component : componentを表す構造体
+type component struct {
 	name string
 	typ  reflect.Type
 }
 
 // Name : componentの名前（基本的にベースになっているものの型名）
-func (c *Component) Name() string {
+func (c *component) Name() string {
 	return c.name
 }
 
 // OriginType : componentの元になっている型情報を取得する
-func (c *Component) Type() reflect.Type {
+func (c *component) Type() reflect.Type {
 	return c.typ
 }
 
 // SetName : componentの名前を設定する.
 // 自分で設定しない場合は、基本的にベースになっているものの型名が名前になる
-func (c *Component) SetName(n string) {
+func (c *component) SetName(n string) {
 	c.name = n
 }
 
