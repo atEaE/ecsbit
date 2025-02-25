@@ -12,6 +12,10 @@ const (
 	versionMask Entity = 0xFFFFFFFF
 )
 
+const (
+	zeroEntity Entity = 0x00000000FFFFFFFF
+)
+
 // Entity : uint64で表されるEntityの識別子
 // * 最初の32bitがEntityIDを表す
 // * 残りの32bitがversionを表す
