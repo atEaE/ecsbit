@@ -1,22 +1,19 @@
 package ecsbit
 
 import (
-	"unsafe"
-
 	"github.com/atEaE/ecsbit/internal/primitive"
 )
 
 // defaultOptions : Worldのデフォルトオプション
 var defaultOptions = WorldOptions{
+	EntityPoolCapacity:        1024,
 	OnCreateCallbacksCapacity: 256,
 	OnRemoveCallbacksCapacity: 256,
 }
 
 // WorldOptions : Worldのオプションを提供する構造体
 type WorldOptions struct {
-	components []unsafe.Pointer
-	archetypes []Archetype
-
+	EntityPoolCapacity        int // Entity Poolのキャパシティ
 	OnCreateCallbacksCapacity int // Entity生成時に呼び出すコールバック群を保持するsliceのキャパシティ
 	OnRemoveCallbacksCapacity int // Entity削除時に呼び出すコールバック群を保持するsliceのキャパシティ
 }
@@ -30,6 +27,7 @@ func NewWorld(opts ...WorldOptions) *World {
 	}
 
 	return &World{
+		entities:          newEntityPool(uint32(option.EntityPoolCapacity)),
 		onCreateCallbacks: make([]func(w *World, e Entity), 0, option.OnCreateCallbacksCapacity),
 		onRemoveCallbacks: make([]func(w *World, e Entity), 0, option.OnRemoveCallbacksCapacity),
 	}
@@ -37,7 +35,7 @@ func NewWorld(opts ...WorldOptions) *World {
 
 // World : ECSの仕組みを提供する構造体
 type World struct {
-	pool []unsafe.Pointer
+	entities entityPool
 
 	onCreateCallbacks []func(w *World, e Entity) // Entity生成時に呼び出すコールバック
 	onRemoveCallbacks []func(w *World, e Entity) // Entity削除時に呼び出すコールバック
@@ -57,13 +55,15 @@ func (w *World) PushOnRemoveCallback(f func(w *World, e Entity)) {
 	w.onRemoveCallbacks = append(w.onRemoveCallbacks, f)
 }
 
-// RegisterArchetype : Archetypeを登録します
-// Archetypeは、特定のComponentの組み合わせを持つパターンのことです
-func (w *World) RegisterArchetype(components ...primitive.ComponentType) {
+// NewEntity : 新しいEntityを生成します
+func (w *World) NewEntity(components []primitive.ComponentType) Entity {
+	if len(components) == 0 {
+		return w.createEntity(nil)
+	}
 	panic("not implemented")
 }
 
-func (w *World) Create(components ...primitive.ComponentType) Entity {
+func (w *World) createEntity(archetype *Archetype) Entity {
 
 	panic("not implemented")
 }
