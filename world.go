@@ -72,7 +72,7 @@ func (w *World) createEntity(archetype *Archetype) Entity {
 
 // RemoveEntity : Entityを削除します
 func (w *World) RemoveEntity(e Entity) {
-	// 死んでいるEntityをリサイクルすることはできない
+	// 死んでいるEntityをリサイクルするとpoolが破損するのでエラーを返す
 	if !w.entityPool.Alive(e) {
 		panic(ErrRemoveDeadEntity)
 	}
