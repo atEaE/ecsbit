@@ -1,18 +1,8 @@
 package ecsbit
 
 import (
-	"sync/atomic"
-
 	"github.com/atEaE/ecsbit/internal/primitive"
 )
-
-// archetypeIDCounter : ArchetypeIDを生成するためのカウンタ
-var archetypeIDCounter uint32 = 0
-
-// nextArchetypeID : ArchetypeIDを生成する
-func nextArchetypeID() primitive.ArchetypeID {
-	return primitive.ArchetypeID(atomic.AddUint32(&archetypeIDCounter, 1) - 1)
-}
 
 // Archetype : Entityの構成要素を表す構造体
 type Archetype struct {
@@ -41,27 +31,8 @@ func (a *Archetype) Count() int {
 	return len(a.entities)
 }
 
-// ArchetypeLayoutIndex : Archetypeの構成要素をインデックスとして管理する
-type ArchetypeLayoutIndex struct {
-	layouts [][]primitive.ComponentTypeID
-}
-
-// NewArchetypeIndex : ArchetypeIndexを生成する
-func NewArchetypeIndex() *ArchetypeLayoutIndex {
-	return &ArchetypeLayoutIndex{
-		layouts: make([][]primitive.ComponentTypeID, 256, 512),
-	}
-}
-
-// Set : Archetypeの構成要素を登録する
-func (i *ArchetypeLayoutIndex) Set(id primitive.ArchetypeID, layout []primitive.ComponentTypeID) {
-	if len(i.layouts) > int(id) {
-		i.layouts[id] = layout
-		return
-	}
-	// IDが大きい場合は、スライスを拡張する
-	newLayouts := make([][]primitive.ComponentTypeID, id+1)
-	copy(newLayouts, i.layouts)
-	newLayouts[id] = layout
-	i.layouts = newLayouts
+// Remove : Archetypeに属するEntityを削除する
+func (a *Archetype) Remove(index uint32) {
+	// 対象Indexを削除して、スライスを詰める
+	a.entities = append(a.entities[:index], a.entities[index+1:]...)
 }
