@@ -32,7 +32,14 @@ func (a *Archetype) Count() int {
 }
 
 // Remove : Archetypeに属するEntityを削除する
-func (a *Archetype) Remove(index uint32) {
+func (a *Archetype) Remove(index uint32) bool {
+	// 最後の要素を削除するときはswapしないのでfalseに設定する
+	swapped := true
+	if index == uint32(len(a.entities)-1) {
+		swapped = false
+	}
+
 	// 対象Indexを削除して、スライスを詰める
 	a.entities = append(a.entities[:index], a.entities[index+1:]...)
+	return swapped
 }
