@@ -29,6 +29,9 @@ func NewWorld(opts ...config.WorldConfigOption) *World {
 		onCreateCallbacks: make([]func(w *World, e Entity), 0, conf.OnCreateCallbacksCapacity),
 		onRemoveCallbacks: make([]func(w *World, e Entity), 0, conf.OnRemoveCallbacksCapacity),
 	}
+	// entitiesに先頭sentinelを追加
+	// entity側もEntityID = 0がsentinelに該当するため、ID = Indexとして扱うこの仕様に合わせてsentinelを設定している
+	world.entities = append(world.entities, EntityIndex{index: 0, archetype: nil})
 	// LayoutなしのArchetypeをあらかじめ生成しておく
 	world.archetypes = append(world.archetypes, archetype{id: 0, entities: make([]Entity, 0, conf.EntityPoolCapacity)})
 
@@ -75,7 +78,8 @@ func (w *World) NewEntity(components ...ComponentID) Entity {
 // createEntity : Entityを生成します
 func (w *World) createEntity(archetype *archetype) Entity {
 	entity := w.entityPool.Get()
-	w.entities = append(w.entities, EntityIndex{index: uint32(entity.ID()), archetype: archetype})
+	index := archetype.Add(entity)
+	w.entities = append(w.entities, EntityIndex{index: index, archetype: archetype})
 
 	for i := range w.onCreateCallbacks {
 		w.onCreateCallbacks[i](w, entity)
@@ -98,7 +102,7 @@ func (w *World) RemoveEntity(e Entity) {
 	}
 
 	// archetype周りの処理
-	index := w.entities[e.ID()]
+	index := &w.entities[e.ID()]
 	oldArchetype := index.archetype
 
 	swapped := oldArchetype.Remove(index.index)
@@ -108,8 +112,9 @@ func (w *World) RemoveEntity(e Entity) {
 		swappedEntity := oldArchetype.GetEntity(index.index)
 		w.entities[swappedEntity.ID()].index = index.index
 	}
+	index.Clear()
 
-	panic("not implemented")
+	// panic("not implemented")
 }
 
 // duplicateComponents
