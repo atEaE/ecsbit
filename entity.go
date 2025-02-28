@@ -54,3 +54,9 @@ func (e Entity) IncrementVersion() Entity {
 func (e Entity) String() string {
 	return fmt.Sprintf("Entity: {id: %d, version: %d}", e.ID(), e.Version())
 }
+
+// EntityIndex :
+type EntityIndex struct {
+	index     uint32     // 対象のEntityが所属するArchetype内でのIndex番号
+	archetype *archetype // Entityが所属するArchetype (nilの場合は、削除済みEntity)
+}

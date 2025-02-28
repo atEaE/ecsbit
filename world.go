@@ -10,6 +10,10 @@ var (
 	ErrRemoveDeadEntity = fmt.Errorf("can't remove a dead entity")
 )
 
+const (
+	noLayoutArchetypeIndex = 0
+)
+
 // NewWorld : Worldを生成します
 func NewWorld(opts ...config.WorldConfigOption) *World {
 	conf := config.Default()
@@ -17,18 +21,26 @@ func NewWorld(opts ...config.WorldConfigOption) *World {
 		opt(&conf)
 	}
 
-	return &World{
+	world := &World{
 		componentStorage:  newComponentStorage(conf.RegisterdComponentMaxSize),
+		archetypes:        make([]archetype, 0, conf.ArchetypeCapacity),
+		entities:          make([]EntityIndex, 0, conf.EntityPoolCapacity),
 		entityPool:        newEntityPool(conf.EntityPoolCapacity),
 		onCreateCallbacks: make([]func(w *World, e Entity), 0, conf.OnCreateCallbacksCapacity),
 		onRemoveCallbacks: make([]func(w *World, e Entity), 0, conf.OnRemoveCallbacksCapacity),
 	}
+	// LayoutなしのArchetypeをあらかじめ生成しておく
+	world.archetypes = append(world.archetypes, archetype{id: 0, entities: make([]Entity, 0, conf.EntityPoolCapacity)})
+
+	return world
 }
 
 // World : ECSの仕組みを提供する構造体
 type World struct {
 	componentStorage componentStorage // Componentを管理するStorage
-	entityPool       entityPool       // Entityを管理するPool（生成とリサイクルを管理する）
+	archetypes       []archetype
+	entities         []EntityIndex
+	entityPool       entityPool // Entityを管理するPool（生成とリサイクルを管理する）
 
 	onCreateCallbacks []func(w *World, e Entity) // Entity生成時に呼び出すコールバック
 	onRemoveCallbacks []func(w *World, e Entity) // Entity削除時に呼び出すコールバック
@@ -51,7 +63,7 @@ func (w *World) PushOnRemoveCallback(f func(w *World, e Entity)) {
 // NewEntity : 新しいEntityを生成します
 func (w *World) NewEntity(components ...ComponentID) Entity {
 	if len(components) == 0 {
-		return w.createEntity(nil)
+		return w.createEntity(w.getArchetype(nil))
 	}
 	if w.duplicateComponents(components) {
 		panic("duplicate components")
@@ -61,13 +73,21 @@ func (w *World) NewEntity(components ...ComponentID) Entity {
 }
 
 // createEntity : Entityを生成します
-func (w *World) createEntity(archetype *Archetype) Entity {
+func (w *World) createEntity(archetype *archetype) Entity {
 	entity := w.entityPool.Get()
+	w.entities = append(w.entities, EntityIndex{index: uint32(entity.ID()), archetype: archetype})
 
 	for i := range w.onCreateCallbacks {
 		w.onCreateCallbacks[i](w, entity)
 	}
 	return entity
+}
+
+func (w *World) getArchetype(components []ComponentID) *archetype {
+	if len(components) == 0 {
+		return &w.archetypes[noLayoutArchetypeIndex]
+	}
+	panic("not implemented")
 }
 
 // RemoveEntity : Entityを削除します
@@ -77,7 +97,17 @@ func (w *World) RemoveEntity(e Entity) {
 		panic(ErrRemoveDeadEntity)
 	}
 
+	// archetype周りの処理
+	index := w.entities[e.ID()]
+	oldArchetype := index.archetype
+
+	swapped := oldArchetype.Remove(index.index)
 	w.entityPool.Recycle(e)
+	if swapped {
+		// Swapが発生した場合、削除指定したIndexの位置にSwapして移動させてEntityがいるので、それを取得してEntityIndexを更新する
+		swappedEntity := oldArchetype.GetEntity(index.index)
+		w.entities[swappedEntity.ID()].index = index.index
+	}
 
 	panic("not implemented")
 }
@@ -98,8 +128,4 @@ func (w *World) duplicateComponents(c []ComponentID) bool {
 func (w *World) RegisterComponent(c component) ComponentID {
 	id := w.componentStorage.ComponentID(c)
 	return id
-}
-
-func (w *World) Stats() string {
-	return ""
 }
