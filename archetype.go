@@ -25,6 +25,12 @@ func (a *archetype) GetEntity(index uint32) Entity {
 	return a.entities[index]
 }
 
+// Add : ArchetypeにEntityを追加する
+func (a *archetype) Add(e Entity) uint32 {
+	a.entities = append(a.entities, e)
+	return uint32(len(a.entities) - 1)
+}
+
 // Remove : Archetypeに属するEntityを削除する
 // 削除Entityと末尾のEntityを入れ替えることで、削除処理を高速化する
 func (a *archetype) Remove(index uint32) bool {
