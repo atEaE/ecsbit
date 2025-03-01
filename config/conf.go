@@ -6,11 +6,10 @@ import (
 
 // defaultConfig : Worldのデフォルトオプション
 var defaultConfig = config.WorldConfig{
-	RegisterdComponentMaxSize: 256,
-	ArchetypeCapacity:         256,
-	EntityPoolCapacity:        1024,
-	OnCreateCallbacksCapacity: 256,
-	OnRemoveCallbacksCapacity: 256,
+	ArchetypeDefaultCapacity:         256,
+	EntityPoolDefaultCapacity:        1024,
+	OnCreateCallbacksDefaultCapacity: 256,
+	OnRemoveCallbacksDefaultCapacity: 256,
 }
 
 // Default : Worldのデフォルトオプションを取得する
@@ -21,33 +20,30 @@ func Default() config.WorldConfig {
 // config.WorldConfigOption : config.WorldConfigのオプションを提供する関数
 type WorldConfigOption func(*config.WorldConfig)
 
-// WithRegisterdComponentMaxSize : 登録可能なComponentの最大数を設定する
-func WithRegisterdComponentMaxSize(size uint32) WorldConfigOption {
-	if size == 0 {
-		panic("RegisterdComponentMaxSize must be greater than 0")
-	}
+// WithArchetypeDefaultCapacity : Archetypeのキャパシティを設定する
+func WithArchetypeDefaultCapacity(capacity uint32) WorldConfigOption {
 	return func(c *config.WorldConfig) {
-		c.RegisterdComponentMaxSize = size
+		c.ArchetypeDefaultCapacity = capacity
 	}
 }
 
-// WithEntityPoolCapacity : Entity Poolのキャパシティを設定する
-func WithEntityPoolCapacity(capacity uint32) WorldConfigOption {
+// WithEntityPoolDefaultCapacity : Entity Poolのキャパシティを設定する
+func WithEntityPoolDefaultCapacity(capacity uint32) WorldConfigOption {
 	return func(c *config.WorldConfig) {
-		c.EntityPoolCapacity = capacity
+		c.EntityPoolDefaultCapacity = capacity
 	}
 }
 
-// WithOnCreateCallbacksCapacity : Entity生成時に呼び出すコールバック群を保持するsliceのキャパシティを設定する
-func WithOnCreateCallbacksCapacity(capacity uint32) WorldConfigOption {
+// WithOnCreateCallbacksDefaultCapacity : Entity生成時に呼び出すコールバック群を保持するsliceのキャパシティを設定する
+func WithOnCreateCallbacksDefaultCapacity(capacity uint32) WorldConfigOption {
 	return func(c *config.WorldConfig) {
-		c.OnCreateCallbacksCapacity = capacity
+		c.OnCreateCallbacksDefaultCapacity = capacity
 	}
 }
 
-// WithOnRemoveCallbacksCapacity : Entity削除時に呼び出すコールバック群を保持するsliceのキャパシティを設定する
-func WithOnRemoveCallbacksCapacity(capacity uint32) WorldConfigOption {
+// WithOnRemoveCallbacksDefaultCapacity : Entity削除時に呼び出すコールバック群を保持するsliceのキャパシティを設定する
+func WithOnRemoveCallbacksDefaultCapacity(capacity uint32) WorldConfigOption {
 	return func(c *config.WorldConfig) {
-		c.OnRemoveCallbacksCapacity = capacity
+		c.OnRemoveCallbacksDefaultCapacity = capacity
 	}
 }

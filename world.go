@@ -19,12 +19,12 @@ func NewWorld(opts ...config.WorldConfigOption) *World {
 	}
 
 	world := &World{
-		componentStorage:  newComponentStorage(conf.RegisterdComponentMaxSize),
-		archetypes:        make([]archetype, 0, conf.ArchetypeCapacity),
-		entities:          make([]EntityIndex, 0, conf.EntityPoolCapacity),
-		entityPool:        newEntityPool(conf.EntityPoolCapacity),
-		onCreateCallbacks: make([]func(w *World, e Entity), 0, conf.OnCreateCallbacksCapacity),
-		onRemoveCallbacks: make([]func(w *World, e Entity), 0, conf.OnRemoveCallbacksCapacity),
+		componentStorage:  newComponentStorage(registeredComponentMaxSize),
+		archetypes:        make([]archetype, 0, conf.ArchetypeDefaultCapacity),
+		entities:          make([]EntityIndex, 0, conf.EntityPoolDefaultCapacity),
+		entityPool:        newEntityPool(conf.EntityPoolDefaultCapacity),
+		onCreateCallbacks: make([]func(w *World, e Entity), 0, conf.OnCreateCallbacksDefaultCapacity),
+		onRemoveCallbacks: make([]func(w *World, e Entity), 0, conf.OnRemoveCallbacksDefaultCapacity),
 		config:            conf,
 	}
 	// entitiesに先頭sentinelを追加
@@ -127,7 +127,7 @@ func (w *World) RegisterComponent(c component) ComponentID {
 // createArchetype : Archetypeを生成します
 func (w *World) createArchetype(components []ComponentID) *archetype {
 	idx := primitive.ArchetypeID(len(w.archetypes))
-	w.archetypeData = append(w.archetypeData, *newArchetypeData(w.config.EntityPoolCapacity))
+	w.archetypeData = append(w.archetypeData, *newArchetypeData(w.config.EntityPoolDefaultCapacity))
 	w.archetypes = append(w.archetypes, *newArchetype(idx, &w.archetypeData[idx]))
 	return &w.archetypes[idx]
 }
