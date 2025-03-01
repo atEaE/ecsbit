@@ -2,6 +2,8 @@ package ecsbit
 
 import (
 	"reflect"
+
+	"github.com/atEaE/ecsbit/internal/bits"
 )
 
 // ComponentID : World単位でComponentを一意に表すID
@@ -39,6 +41,12 @@ func (c *component) Type() reflect.Type {
 func (c *component) SetName(n string) {
 	c.name = n
 }
+
+const (
+	// registerdComponentMaxSize : 登録可能なComponentの最大数
+	// ArchetypeのLayoutを表すビットマスクの最大サイズに合わせて設定している。これ以上登録してもBitMaskで表現できないため。
+	registeredComponentMaxSize = bits.Mask256Max
+)
 
 // newComponentStorage : componentStorageを生成する
 func newComponentStorage(maxSize uint32) componentStorage {
