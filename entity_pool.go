@@ -90,3 +90,13 @@ func (p *entityPool) Len() int {
 func (p *entityPool) Available() int {
 	return int(p.available)
 }
+
+// Total : Entity Poolに含まれる使用中もしくは、リサイクル待ちのEntityの総数を返します
+func (p *entityPool) Total() int {
+	return len(p.entities) - 1 // sentinelを除く
+}
+
+// Cap : Entity Poolのキャパシティを返します
+func (p *entityPool) Cap() int {
+	return cap(p.entities)
+}

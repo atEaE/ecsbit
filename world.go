@@ -4,6 +4,7 @@ import (
 	"github.com/atEaE/ecsbit/config"
 	internalconfig "github.com/atEaE/ecsbit/internal/config"
 	"github.com/atEaE/ecsbit/internal/primitive"
+	"github.com/atEaE/ecsbit/stats"
 )
 
 const (
@@ -129,6 +130,19 @@ func (w *World) createArchetype(components []ComponentID) *archetype {
 	w.archetypeData = append(w.archetypeData, *newArchetypeData(w.config.EntityPoolCapacity))
 	w.archetypes = append(w.archetypes, *newArchetype(idx, &w.archetypeData[idx]))
 	return &w.archetypes[idx]
+}
+
+// Stats : Worldの統計情報を取得します
+func (w *World) Stats() *stats.World {
+	stats := &stats.World{
+		Entities: stats.Entities{
+			Used:     w.entityPool.Len(),
+			Total:    w.entityPool.Total(),
+			Capacity: w.entityPool.Cap(),
+			Recycled: w.entityPool.Available(),
+		},
+	}
+	return stats
 }
 
 // duplicateComponents
