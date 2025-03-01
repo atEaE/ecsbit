@@ -3,6 +3,7 @@ package ecsbit
 import (
 	"github.com/atEaE/ecsbit/config"
 	internalconfig "github.com/atEaE/ecsbit/internal/config"
+	"github.com/atEaE/ecsbit/internal/primitive"
 )
 
 const (
@@ -29,7 +30,7 @@ func NewWorld(opts ...config.WorldConfigOption) *World {
 	// entity側もEntityID = 0がsentinelに該当するため、ID = Indexとして扱うこの仕様に合わせてsentinelを設定している
 	world.entities = append(world.entities, EntityIndex{index: 0, archetype: nil})
 	// LayoutなしのArchetypeをあらかじめ生成しておく
-	world.archetypes = append(world.archetypes, *newArchetype(noLayoutArchetypeIndex, newArchetypeData(conf.EntityPoolCapacity)))
+	world.createArchetype(nil)
 
 	return world
 }
@@ -45,7 +46,7 @@ type World struct {
 	onCreateCallbacks []func(w *World, e Entity) // Entity生成時に呼び出すコールバック
 	onRemoveCallbacks []func(w *World, e Entity) // Entity削除時に呼び出すコールバック
 
-	config internalconfig.WorldConfig
+	config internalconfig.WorldConfig // Worldの設定（内部関数で使う場合があるので予め保持しておく）
 }
 
 // PushOnCreateCallback : Entity生成時に呼び出すコールバックを追加します。
@@ -122,8 +123,12 @@ func (w *World) RegisterComponent(c component) ComponentID {
 	return id
 }
 
-func (w *World) createArchetype() *archetype {
-	panic("not implemented")
+// createArchetype : Archetypeを生成します
+func (w *World) createArchetype(components []ComponentID) *archetype {
+	idx := primitive.ArchetypeID(len(w.archetypes))
+	w.archetypeData = append(w.archetypeData, *newArchetypeData(w.config.EntityPoolCapacity))
+	w.archetypes = append(w.archetypes, *newArchetype(idx, &w.archetypeData[idx]))
+	return &w.archetypes[idx]
 }
 
 // duplicateComponents
