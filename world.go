@@ -2,6 +2,7 @@ package ecsbit
 
 import (
 	"github.com/atEaE/ecsbit/config"
+	internalconfig "github.com/atEaE/ecsbit/internal/config"
 )
 
 const (
@@ -22,6 +23,7 @@ func NewWorld(opts ...config.WorldConfigOption) *World {
 		entityPool:        newEntityPool(conf.EntityPoolCapacity),
 		onCreateCallbacks: make([]func(w *World, e Entity), 0, conf.OnCreateCallbacksCapacity),
 		onRemoveCallbacks: make([]func(w *World, e Entity), 0, conf.OnRemoveCallbacksCapacity),
+		config:            conf,
 	}
 	// entitiesに先頭sentinelを追加
 	// entity側もEntityID = 0がsentinelに該当するため、ID = Indexとして扱うこの仕様に合わせてsentinelを設定している
@@ -35,12 +37,15 @@ func NewWorld(opts ...config.WorldConfigOption) *World {
 // World : ECSの仕組みを提供する構造体
 type World struct {
 	componentStorage componentStorage // Componentを管理するStorage
+	archetypeData    []archetypeData  // Archetypeから生成されたEntityのデータを保持するSlice
 	archetypes       []archetype      // Achetypeを管理するSlice
 	entities         []EntityIndex
 	entityPool       entityPool // Entityを管理するPool（生成とリサイクルを管理する）
 
 	onCreateCallbacks []func(w *World, e Entity) // Entity生成時に呼び出すコールバック
 	onRemoveCallbacks []func(w *World, e Entity) // Entity削除時に呼び出すコールバック
+
+	config internalconfig.WorldConfig
 }
 
 // PushOnCreateCallback : Entity生成時に呼び出すコールバックを追加します。
@@ -115,6 +120,10 @@ func (w *World) RemoveEntity(e Entity) {
 func (w *World) RegisterComponent(c component) ComponentID {
 	id := w.componentStorage.ComponentID(c)
 	return id
+}
+
+func (w *World) createArchetype() *archetype {
+	panic("not implemented")
 }
 
 // duplicateComponents

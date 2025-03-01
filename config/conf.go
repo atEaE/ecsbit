@@ -1,7 +1,11 @@
 package config
 
+import (
+	"github.com/atEaE/ecsbit/internal/config"
+)
+
 // defaultConfig : Worldのデフォルトオプション
-var defaultConfig = worldConfig{
+var defaultConfig = config.WorldConfig{
 	RegisterdComponentMaxSize: 256,
 	ArchetypeCapacity:         256,
 	EntityPoolCapacity:        1024,
@@ -10,49 +14,40 @@ var defaultConfig = worldConfig{
 }
 
 // Default : Worldのデフォルトオプションを取得する
-func Default() worldConfig {
+func Default() config.WorldConfig {
 	return defaultConfig
 }
 
-// WorldConfig : Worldのオプションを提供する構造体
-type worldConfig struct {
-	RegisterdComponentMaxSize uint32 // 登録可能なComponentの最大数
-	ArchetypeCapacity         uint32 // Archetypeのキャパシティ
-	EntityPoolCapacity        uint32 // Entity Poolのキャパシティ
-	OnCreateCallbacksCapacity uint32 // Entity生成時に呼び出すコールバック群を保持するsliceのキャパシティ
-	OnRemoveCallbacksCapacity uint32 // Entity削除時に呼び出すコールバック群を保持するsliceのキャパシティ
-}
-
-// WorldConfigOption : WorldConfigのオプションを提供する関数
-type WorldConfigOption func(*worldConfig)
+// config.WorldConfigOption : config.WorldConfigのオプションを提供する関数
+type WorldConfigOption func(*config.WorldConfig)
 
 // WithRegisterdComponentMaxSize : 登録可能なComponentの最大数を設定する
 func WithRegisterdComponentMaxSize(size uint32) WorldConfigOption {
 	if size == 0 {
 		panic("RegisterdComponentMaxSize must be greater than 0")
 	}
-	return func(c *worldConfig) {
+	return func(c *config.WorldConfig) {
 		c.RegisterdComponentMaxSize = size
 	}
 }
 
 // WithEntityPoolCapacity : Entity Poolのキャパシティを設定する
 func WithEntityPoolCapacity(capacity uint32) WorldConfigOption {
-	return func(c *worldConfig) {
+	return func(c *config.WorldConfig) {
 		c.EntityPoolCapacity = capacity
 	}
 }
 
 // WithOnCreateCallbacksCapacity : Entity生成時に呼び出すコールバック群を保持するsliceのキャパシティを設定する
 func WithOnCreateCallbacksCapacity(capacity uint32) WorldConfigOption {
-	return func(c *worldConfig) {
+	return func(c *config.WorldConfig) {
 		c.OnCreateCallbacksCapacity = capacity
 	}
 }
 
 // WithOnRemoveCallbacksCapacity : Entity削除時に呼び出すコールバック群を保持するsliceのキャパシティを設定する
 func WithOnRemoveCallbacksCapacity(capacity uint32) WorldConfigOption {
-	return func(c *worldConfig) {
+	return func(c *config.WorldConfig) {
 		c.OnRemoveCallbacksCapacity = capacity
 	}
 }
