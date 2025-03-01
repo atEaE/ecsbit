@@ -1,13 +1,7 @@
 package ecsbit
 
 import (
-	"fmt"
-
 	"github.com/atEaE/ecsbit/config"
-)
-
-var (
-	ErrRemoveDeadEntity = fmt.Errorf("can't remove a dead entity")
 )
 
 const (
@@ -63,13 +57,13 @@ func (w *World) PushOnRemoveCallback(f func(w *World, e Entity)) {
 	w.onRemoveCallbacks = append(w.onRemoveCallbacks, f)
 }
 
-// NewEntity : 新しいEntityを生成します
-func (w *World) NewEntity(components ...ComponentID) Entity {
+// CreateEntity : 新しいEntityを生成します
+func (w *World) CreateEntity(components ...ComponentID) Entity {
 	if len(components) == 0 {
 		return w.createEntity(w.getArchetype(nil))
 	}
 	if w.duplicateComponents(components) {
-		panic("duplicate components")
+		panic(ErrDuplicateComponent)
 	}
 
 	panic("not implemented")
@@ -98,7 +92,7 @@ func (w *World) getArchetype(components []ComponentID) *archetype {
 func (w *World) RemoveEntity(e Entity) {
 	// 死んでいるEntityをリサイクルするとpoolが破損するのでエラーを返す
 	if !w.entityPool.Alive(e) {
-		panic(ErrRemoveDeadEntity)
+		panic(ErrDeadEntityOperation)
 	}
 
 	// archetype周りの処理
