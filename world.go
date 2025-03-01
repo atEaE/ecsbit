@@ -27,7 +27,7 @@ func NewWorld(opts ...config.WorldConfigOption) *World {
 	// entity側もEntityID = 0がsentinelに該当するため、ID = Indexとして扱うこの仕様に合わせてsentinelを設定している
 	world.entities = append(world.entities, EntityIndex{index: 0, archetype: nil})
 	// LayoutなしのArchetypeをあらかじめ生成しておく
-	world.archetypes = append(world.archetypes, archetype{id: 0, entities: make([]Entity, 0, conf.EntityPoolCapacity)})
+	world.archetypes = append(world.archetypes, *newArchetype(noLayoutArchetypeIndex, newArchetypeData(conf.EntityPoolCapacity)))
 
 	return world
 }
@@ -35,7 +35,7 @@ func NewWorld(opts ...config.WorldConfigOption) *World {
 // World : ECSの仕組みを提供する構造体
 type World struct {
 	componentStorage componentStorage // Componentを管理するStorage
-	archetypes       []archetype
+	archetypes       []archetype      // Achetypeを管理するSlice
 	entities         []EntityIndex
 	entityPool       entityPool // Entityを管理するPool（生成とリサイクルを管理する）
 
@@ -111,6 +111,12 @@ func (w *World) RemoveEntity(e Entity) {
 	// panic("not implemented")
 }
 
+// RegisterComponent : Componentを登録します
+func (w *World) RegisterComponent(c component) ComponentID {
+	id := w.componentStorage.ComponentID(c)
+	return id
+}
+
 // duplicateComponents
 func (w *World) duplicateComponents(c []ComponentID) bool {
 	for i := 0; i < len(c); i++ {
@@ -121,10 +127,4 @@ func (w *World) duplicateComponents(c []ComponentID) bool {
 		}
 	}
 	return false
-}
-
-// RegisterComponent : Componentを登録します
-func (w *World) RegisterComponent(c component) ComponentID {
-	id := w.componentStorage.ComponentID(c)
-	return id
 }

@@ -4,10 +4,22 @@ import (
 	"github.com/atEaE/ecsbit/internal/primitive"
 )
 
+// NewArchetype : Archetypeを生成する
+func newArchetype(
+	id primitive.ArchetypeID,
+	data *archetypeData,
+) *archetype {
+	return &archetype{
+		id:            id,
+		archetypeData: data,
+	}
+}
+
 // archetype : Entityの構成要素を表す構造体
 type archetype struct {
-	id       primitive.ArchetypeID // Archetypeを一意に識別するID
-	entities []Entity              // Archetypeに属するEntity
+	id primitive.ArchetypeID // Archetypeを一意に識別するID
+
+	*archetypeData // archetypeから生成されたEntityのデータを保持する構造体
 }
 
 // ID : archetypeを一意に識別するIDを取得する
@@ -44,4 +56,19 @@ func (a *archetype) Remove(index uint32) bool {
 	a.entities[index], a.entities[last] = a.entities[last], a.entities[index]
 	a.entities = a.entities[:last]
 	return true
+}
+
+// newArchetypeData : archetypeDataを生成する
+func newArchetypeData(
+	entityCapacity uint32,
+) *archetypeData {
+	return &archetypeData{
+		entities: make([]Entity, 0, entityCapacity),
+	}
+}
+
+// archetypeData : archetypeから生成されたEntityのデータを保持する構造体
+// archetype : archetypeData は 1 : 1 の関係
+type archetypeData struct {
+	entities []Entity // Archetypeに属するEntity
 }
