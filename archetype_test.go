@@ -7,9 +7,7 @@ import (
 func TestArchetype_Remove(t *testing.T) {
 	t.Run("remove entity swap false", func(t *testing.T) {
 		// arrange
-		a := archetype{
-			entities: make([]Entity, 0, 256),
-		}
+		a := newArchetype(0, newArchetypeData(256))
 		a.entities = append(a.entities, NewEntity(0), NewEntity(1), NewEntity(2), NewEntity(3))
 
 		// act
@@ -30,9 +28,7 @@ func TestArchetype_Remove(t *testing.T) {
 
 	t.Run("remove entity swap true(top)", func(t *testing.T) {
 		// arrange
-		a := archetype{
-			entities: make([]Entity, 0, 256),
-		}
+		a := newArchetype(0, newArchetypeData(256))
 		a.entities = append(a.entities, NewEntity(0), NewEntity(1), NewEntity(2), NewEntity(3))
 
 		// act
@@ -53,9 +49,7 @@ func TestArchetype_Remove(t *testing.T) {
 
 	t.Run("remove entity swap true(middle)", func(t *testing.T) {
 		// arrange
-		a := archetype{
-			entities: make([]Entity, 0, 256),
-		}
+		a := newArchetype(0, newArchetypeData(256))
 		a.entities = append(a.entities, NewEntity(0), NewEntity(1), NewEntity(2), NewEntity(3))
 
 		// act
