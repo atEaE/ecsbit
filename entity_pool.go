@@ -81,9 +81,9 @@ func (p *entityPool) Alive(e Entity) bool {
 	return e.Version() == p.entities[e.ID()].Version()
 }
 
-// Len : Entity Poolに含まれるEntityの数を返します(index = 0は,sentinelのためカウントされない)
-func (p *entityPool) Len() int {
-	return len(p.entities) - 1
+// Used : Entity Poolに含まれるEntityの数を返します(index = 0は,sentinelのためカウントされない)
+func (p *entityPool) Used() int {
+	return len(p.entities) - 1 - int(p.available)
 }
 
 // Available : 利用可能なEntityの数を返します

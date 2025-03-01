@@ -136,7 +136,7 @@ func (w *World) createArchetype(components []ComponentID) *archetype {
 func (w *World) Stats() *stats.World {
 	stats := &stats.World{
 		Entities: stats.Entities{
-			Used:     w.entityPool.Len(),
+			Used:     w.entityPool.Used(),
 			Total:    w.entityPool.Total(),
 			Capacity: w.entityPool.Cap(),
 			Recycled: w.entityPool.Available(),
