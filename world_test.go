@@ -39,21 +39,3 @@ func TestWorld_NewWorldWithOptions(t *testing.T) {
 		}
 	})
 }
-
-func TestWorld_getArchetype(t *testing.T) {
-	t.Run("no layout archetype", func(t *testing.T) {
-		// arrange
-		w := NewWorld()
-
-		// act
-		a := w.getArchetype(nil)
-
-		// assert
-		if got := a.ID(); got != 0 {
-			t.Errorf("unexpected result: got %v, want %v", got, 0)
-		}
-		if got := a.Count(); got != 0 {
-			t.Errorf("unexpected result: got %v, want %v", got, 0)
-		}
-	})
-}

@@ -65,6 +65,7 @@ func (a *archetype) Remove(index uint32) bool {
 // newArchetypeData : archetypeDataを生成する
 func newArchetypeData(
 	entityCapacity uint32,
+	layout bits.Mask256,
 ) *archetypeData {
 	return &archetypeData{
 		entities: make([]Entity, 0, entityCapacity),
@@ -74,7 +75,8 @@ func newArchetypeData(
 // archetypeData : archetypeから生成されたEntityのデータを保持する構造体
 // archetype : archetypeData は 1 : 1 の関係
 type archetypeData struct {
-	entities []Entity // Archetypeに属するEntity
+	entities   []Entity     // Archetypeに属するEntity
+	layoutMask bits.Mask256 // ArchetypeのLayoutを表すビットマスク
 }
 
 // ConvertToComponentIDs : Mask256をComponentIDのスライスに変換する

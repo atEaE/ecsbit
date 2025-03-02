@@ -2,6 +2,7 @@ package ecsbit
 
 import (
 	"github.com/atEaE/ecsbit/config"
+	"github.com/atEaE/ecsbit/internal/bits"
 	internalconfig "github.com/atEaE/ecsbit/internal/config"
 	"github.com/atEaE/ecsbit/internal/primitive"
 	"github.com/atEaE/ecsbit/stats"
@@ -20,8 +21,9 @@ func NewWorld(opts ...config.WorldConfigOption) *World {
 
 	world := &World{
 		componentStorage:  newComponentStorage(registeredComponentMaxSize),
+		archetypeData:     make([]archetypeData, 0, conf.ArchetypeDefaultCapacity),
 		archetypes:        make([]archetype, 0, conf.ArchetypeDefaultCapacity),
-		entities:          make([]EntityIndex, 0, conf.EntityPoolDefaultCapacity),
+		entityIndices:     make([]EntityIndex, 0, conf.EntityPoolDefaultCapacity),
 		entityPool:        newEntityPool(conf.EntityPoolDefaultCapacity),
 		onCreateCallbacks: make([]func(w *World, e Entity), 0, conf.OnCreateCallbacksDefaultCapacity),
 		onRemoveCallbacks: make([]func(w *World, e Entity), 0, conf.OnRemoveCallbacksDefaultCapacity),
@@ -29,20 +31,21 @@ func NewWorld(opts ...config.WorldConfigOption) *World {
 	}
 	// entitiesに先頭sentinelを追加
 	// entity側もEntityID = 0がsentinelに該当するため、ID = Indexとして扱うこの仕様に合わせてsentinelを設定している
-	world.entities = append(world.entities, EntityIndex{index: 0, archetype: nil})
+	world.entityIndices = append(world.entityIndices, EntityIndex{index: 0, archetype: nil})
 	// LayoutなしのArchetypeをあらかじめ生成しておく
-	world.createArchetype(nil)
+	world.createArchetype(bits.Mask256{})
 
 	return world
 }
 
 // World : ECSの仕組みを提供する構造体
 type World struct {
-	componentStorage componentStorage // Componentを管理するStorage
-	archetypeData    []archetypeData  // Archetypeから生成されたEntityのデータを保持するSlice
-	archetypes       []archetype      // Achetypeを管理するSlice
-	entities         []EntityIndex
-	entityPool       entityPool // Entityを管理するPool（生成とリサイクルを管理する）
+	componentStorage componentStorage            // Componentを管理するStorage
+	archetypeData    []archetypeData             // Archetypeから生成されたEntityのデータを保持するSlice
+	archetypeLayouts map[bits.Mask256]*archetype // LayoutMaskからArchetypeを取得するためのMap
+	archetypes       []archetype                 // Achetypeを管理するSlice
+	entityIndices    []EntityIndex               // Archetype内に置けるEntityIndexとArchetypeの関連性を管理する（EntityIDでIndexにアクセスする）
+	entityPool       entityPool                  // Entityを管理するPool（生成とリサイクルを管理する）
 
 	onCreateCallbacks []func(w *World, e Entity) // Entity生成時に呼び出すコールバック
 	onRemoveCallbacks []func(w *World, e Entity) // Entity削除時に呼び出すコールバック
@@ -66,21 +69,14 @@ func (w *World) PushOnRemoveCallback(f func(w *World, e Entity)) {
 
 // CreateEntity : 新しいEntityを生成します
 func (w *World) CreateEntity(components ...ComponentID) Entity {
-	if len(components) == 0 {
-		return w.createEntity(w.getArchetype(nil))
-	}
-	if w.duplicateComponents(components) {
-		panic(ErrDuplicateComponent)
-	}
-
-	panic("not implemented")
+	return w.createEntity(w.findOrCreateArchetype(components))
 }
 
 // createEntity : Entityを生成します
 func (w *World) createEntity(archetype *archetype) Entity {
 	entity := w.entityPool.Get()
 	index := archetype.Add(entity)
-	w.entities = append(w.entities, EntityIndex{index: index, archetype: archetype})
+	w.entityIndices = append(w.entityIndices, EntityIndex{index: index, archetype: archetype})
 
 	for i := range w.onCreateCallbacks {
 		w.onCreateCallbacks[i](w, entity)
@@ -88,11 +84,18 @@ func (w *World) createEntity(archetype *archetype) Entity {
 	return entity
 }
 
-func (w *World) getArchetype(components []ComponentID) *archetype {
+// findOrCreateArchetype : 指定されたComponentIDからArchetypeを取得します
+// 存在しない場合は新しいArchetypeを生成します
+func (w *World) findOrCreateArchetype(components []ComponentID) *archetype {
 	if len(components) == 0 {
 		return &w.archetypes[noLayoutArchetypeIndex]
 	}
-	panic("not implemented")
+
+	layout := createLayoutMask(components)
+	if archetype, ok := w.archetypeLayouts[layout]; ok {
+		return archetype
+	}
+	return w.createArchetype(layout)
 }
 
 // RemoveEntity : Entityを削除します
@@ -103,7 +106,7 @@ func (w *World) RemoveEntity(e Entity) {
 	}
 
 	// archetype周りの処理
-	index := &w.entities[e.ID()]
+	index := &w.entityIndices[e.ID()]
 	oldArchetype := index.archetype
 
 	swapped := oldArchetype.Remove(index.index)
@@ -111,7 +114,7 @@ func (w *World) RemoveEntity(e Entity) {
 	if swapped {
 		// Swapが発生した場合、削除指定したIndexの位置にSwapして移動させてEntityがいるので、それを取得してEntityIndexを更新する
 		swappedEntity := oldArchetype.GetEntity(index.index)
-		w.entities[swappedEntity.ID()].index = index.index
+		w.entityIndices[swappedEntity.ID()].index = index.index
 	}
 	index.Clear()
 
@@ -125,9 +128,9 @@ func (w *World) RegisterComponent(c component) ComponentID {
 }
 
 // createArchetype : Archetypeを生成します
-func (w *World) createArchetype(components []ComponentID) *archetype {
+func (w *World) createArchetype(layoutMask bits.Mask256) *archetype {
 	idx := primitive.ArchetypeID(len(w.archetypes))
-	w.archetypeData = append(w.archetypeData, *newArchetypeData(w.config.EntityPoolDefaultCapacity))
+	w.archetypeData = append(w.archetypeData, *newArchetypeData(w.config.EntityPoolDefaultCapacity, layoutMask))
 	w.archetypes = append(w.archetypes, *newArchetype(idx, &w.archetypeData[idx]))
 	return &w.archetypes[idx]
 }
@@ -145,14 +148,11 @@ func (w *World) Stats() *stats.World {
 	return stats
 }
 
-// duplicateComponents
-func (w *World) duplicateComponents(c []ComponentID) bool {
-	for i := 0; i < len(c); i++ {
-		for j := i + 1; j < len(c); j++ {
-			if c[i] == c[j] {
-				return true
-			}
-		}
+// createLayoutMask : 引数に指定されたComponentIDからLayoutMaskを生成します
+func createLayoutMask(components []ComponentID) bits.Mask256 {
+	mask := bits.Mask256{}
+	for _, c := range components {
+		mask.Set(uint32(c), true)
 	}
-	return false
+	return mask
 }

@@ -7,9 +7,12 @@ import (
 )
 
 func TestArchetype_Remove(t *testing.T) {
+	var entityPoolSize uint32 = 256
+	mask := bits.Mask256{}
+
 	t.Run("remove entity swap false", func(t *testing.T) {
 		// arrange
-		a := newArchetype(0, newArchetypeData(256))
+		a := newArchetype(0, newArchetypeData(entityPoolSize, mask))
 		a.entities = append(a.entities, NewEntity(0), NewEntity(1), NewEntity(2), NewEntity(3))
 
 		// act
@@ -23,14 +26,14 @@ func TestArchetype_Remove(t *testing.T) {
 		if len(a.entities) != 3 {
 			t.Errorf("unexpected entity count: %d", len(a.entities))
 		}
-		if cap(a.entities) != 256 {
+		if cap(a.entities) != int(entityPoolSize) {
 			t.Errorf("unexpected entity capacity: %d", cap(a.entities))
 		}
 	})
 
 	t.Run("remove entity swap true(top)", func(t *testing.T) {
 		// arrange
-		a := newArchetype(0, newArchetypeData(256))
+		a := newArchetype(0, newArchetypeData(entityPoolSize, mask))
 		a.entities = append(a.entities, NewEntity(0), NewEntity(1), NewEntity(2), NewEntity(3))
 
 		// act
@@ -44,14 +47,14 @@ func TestArchetype_Remove(t *testing.T) {
 		if len(a.entities) != 3 {
 			t.Errorf("unexpected entity count: %d", len(a.entities))
 		}
-		if cap(a.entities) != 256 {
+		if cap(a.entities) != int(entityPoolSize) {
 			t.Errorf("unexpected entity capacity: %d", cap(a.entities))
 		}
 	})
 
 	t.Run("remove entity swap true(middle)", func(t *testing.T) {
 		// arrange
-		a := newArchetype(0, newArchetypeData(256))
+		a := newArchetype(0, newArchetypeData(entityPoolSize, mask))
 		a.entities = append(a.entities, NewEntity(0), NewEntity(1), NewEntity(2), NewEntity(3))
 
 		// act
@@ -65,7 +68,7 @@ func TestArchetype_Remove(t *testing.T) {
 		if len(a.entities) != 3 {
 			t.Errorf("unexpected entity count: %d", len(a.entities))
 		}
-		if cap(a.entities) != 256 {
+		if cap(a.entities) != int(entityPoolSize) {
 			t.Errorf("unexpected entity capacity: %d", cap(a.entities))
 		}
 	})
