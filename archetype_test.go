@@ -2,6 +2,8 @@ package ecsbit
 
 import (
 	"testing"
+
+	"github.com/atEaE/ecsbit/internal/bits"
 )
 
 func TestArchetype_Remove(t *testing.T) {
@@ -67,4 +69,25 @@ func TestArchetype_Remove(t *testing.T) {
 			t.Errorf("unexpected entity capacity: %d", cap(a.entities))
 		}
 	})
+}
+
+func TestConvertToComponentIDs(t *testing.T) {
+	// arrange
+	m := bits.Mask256{}
+	index := []uint32{1, 10, 124}
+
+	for _, i := range index {
+		m.Set(i, true)
+	}
+
+	// act
+	ids := convertToComponentIDs(&m)
+
+	// assert
+	_ = ids
+	for i := range ids {
+		if uint32(ids[i]) != index[i] {
+			t.Errorf("unexpected component id: %d", ids[i])
+		}
+	}
 }

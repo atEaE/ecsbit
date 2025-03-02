@@ -1,6 +1,9 @@
 package ecsbit
 
 import (
+	mathbits "math/bits"
+
+	"github.com/atEaE/ecsbit/internal/bits"
 	"github.com/atEaE/ecsbit/internal/primitive"
 )
 
@@ -17,7 +20,8 @@ func newArchetype(
 
 // archetype : Entityの構成要素を表す構造体
 type archetype struct {
-	id primitive.ArchetypeID // Archetypeを一意に識別するID
+	id         primitive.ArchetypeID // Archetypeを一意に識別するID
+	layoutMask bits.Mask256          // ArchetypeのLayoutを表すビットマスク
 
 	*archetypeData // archetypeから生成されたEntityのデータを保持する構造体
 }
@@ -71,4 +75,18 @@ func newArchetypeData(
 // archetype : archetypeData は 1 : 1 の関係
 type archetypeData struct {
 	entities []Entity // Archetypeに属するEntity
+}
+
+// ConvertToComponentIDs : Mask256をComponentIDのスライスに変換する
+func convertToComponentIDs(m *bits.Mask256) []ComponentID {
+	ids := make([]ComponentID, 0, bits.Mask256Max)
+	bits := m.Bits()
+	for i, word := range bits {
+		for word != 0 {
+			bitPos := mathbits.TrailingZeros64(word)
+			ids = append(ids, ComponentID(i*64+bitPos))
+			word &= word - 1
+		}
+	}
+	return ids
 }

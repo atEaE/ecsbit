@@ -12,11 +12,11 @@ func TestWorld_NewWorldWithOptions(t *testing.T) {
 		w := NewWorld()
 
 		// assert
-		if got := cap(w.onCreateCallbacks); got != int(config.Default().OnCreateCallbacksCapacity) {
-			t.Errorf("unexpected result: got %v, want %v", got, int(config.Default().OnCreateCallbacksCapacity))
+		if got := cap(w.onCreateCallbacks); got != int(config.Default().OnCreateCallbacksDefaultCapacity) {
+			t.Errorf("unexpected result: got %v, want %v", got, int(config.Default().OnCreateCallbacksDefaultCapacity))
 		}
-		if got := cap(w.onRemoveCallbacks); got != int(config.Default().OnRemoveCallbacksCapacity) {
-			t.Errorf("unexpected result: got %v, want %v", got, int(config.Default().OnRemoveCallbacksCapacity))
+		if got := cap(w.onRemoveCallbacks); got != int(config.Default().OnRemoveCallbacksDefaultCapacity) {
+			t.Errorf("unexpected result: got %v, want %v", got, int(config.Default().OnRemoveCallbacksDefaultCapacity))
 		}
 	})
 
@@ -26,8 +26,8 @@ func TestWorld_NewWorldWithOptions(t *testing.T) {
 		expectedOnRemoveCap := uint32(128)
 
 		w := NewWorld(
-			config.WithOnCreateCallbacksCapacity(expectedOnCreateCap),
-			config.WithOnRemoveCallbacksCapacity(expectedOnRemoveCap),
+			config.WithOnCreateCallbacksDefaultCapacity(expectedOnCreateCap),
+			config.WithOnRemoveCallbacksDefaultCapacity(expectedOnRemoveCap),
 		)
 
 		// assert
