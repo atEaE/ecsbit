@@ -60,7 +60,7 @@ func newComponentStorage(maxSize uint32) componentStorage {
 	}
 }
 
-// componentStorage : componentを補完するストレージ
+// componentStorage : componentを保管するストレージ
 type componentStorage struct {
 	Components map[component]ComponentID
 	Types      []component

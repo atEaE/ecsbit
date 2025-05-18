@@ -1,6 +1,10 @@
 package stats
 
-import "encoding/json"
+import (
+	"encoding/json"
+	"fmt"
+	"strings"
+)
 
 // ToJSON : Worldの統計情報をJSON形式に変換します
 func ToJSON(stats World) []byte {
@@ -27,6 +31,15 @@ type World struct {
 	Entities Entities `json:"entities"` // Entityの統計情報
 }
 
+// String : Worldの統計情報を文字列に変換します
+func (w *World) String() string {
+	b := strings.Builder{}
+
+	fmt.Fprint(&b, w.Entities.String())
+
+	return b.String()
+}
+
 // Entities : Entityの統計情報
 type Entities struct {
 	// Used : 使用中のEntity数
@@ -37,4 +50,9 @@ type Entities struct {
 	Recycled int `json:"recycled"`
 	// Capacity : Entity Poolのキャパシティ
 	Capacity int `json:"capacity"`
+}
+
+// String : Entityの統計情報を文字列に変換します
+func (e *Entities) String() string {
+	return fmt.Sprintf("Entities: -- Used: %d, Recycled: %d, Total: %d, Capacity: %d --", e.Used, e.Recycled, e.Total, e.Capacity)
 }
